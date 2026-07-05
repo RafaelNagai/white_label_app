@@ -1,0 +1,109 @@
+name: Build Client
+
+on:
+  workflow_dispatch:
+    inputs:
+      client_id:
+        description: "Client id (must match a directory under configs/)"
+        required: true
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      client_id: ${{ steps.check.outputs.client_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          CLIENT="${{ inputs.client_id }}"
+          if [ ! -f "configs/$CLIENT/config.json" ]; then
+            echo "::error::Unknown client_id '$CLIENT'. Available clients:"
+            ls configs
+            exit 1
+          fi
+          echo "client_id=$CLIENT" >> "$GITHUB_OUTPUT"
+
+  build-android:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read FVM-pinned Flutter version
+        id: fvm
+        run: echo "version=$(jq -r '.flutterSdkVersion' .fvm/fvm_config.json)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+      - name: Apply client config
+        run: dart tool/apply_client.dart ${{ needs.validate.outputs.client_id }}
+      - name: Install dependencies
+        working-directory: apps/example_app
+        run: flutter pub get
+      - name: Generate launcher icons
+        working-directory: apps/example_app
+        run: dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+      - name: Build APK
+        working-directory: apps/example_app
+        run: flutter build apk --release
+      - name: Build App Bundle
+        working-directory: apps/example_app
+        run: flutter build appbundle --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.client_id }}-android
+          path: |
+            apps/example_app/build/app/outputs/flutter-apk/*.apk
+            apps/example_app/build/app/outputs/bundle/release/*.aab
+
+  build-ios:
+    needs: validate
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read FVM-pinned Flutter version
+        id: fvm
+        run: echo "version=$(jq -r '.flutterSdkVersion' .fvm/fvm_config.json)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+      - name: Import signing certificate & provisioning profile
+        env:
+          IOS_CERT_P12_BASE64: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          IOS_CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          KEYCHAIN_PWD=$(uuidgen)
+          security create-keychain -p "$KEYCHAIN_PWD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PWD" build.keychain
+          echo "$IOS_CERT_P12_BASE64" | base64 --decode > cert.p12
+          security import cert.p12 -k build.keychain -P "$IOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s build.keychain $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PWD" build.keychain
+          rm cert.p12
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$IOS_PROVISION_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/wildcard.mobileprovision
+      - name: Apply client config
+        env:
+          IOS_PROFILE_NAME: ${{ secrets.IOS_PROFILE_NAME }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: dart tool/apply_client.dart ${{ needs.validate.outputs.client_id }}
+      - name: Install dependencies
+        working-directory: apps/example_app
+        run: flutter pub get
+      - name: Generate launcher icons
+        working-directory: apps/example_app
+        run: dart run flutter_launcher_icons -f flutter_launcher_icons.yaml
+      - name: Build IPA
+        working-directory: apps/example_app
+        run: |
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.client_id }}-ios
+          path: apps/example_app/build/ios/ipa/*.ipa

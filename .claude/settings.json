@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/naga/Library/Android/sdk/build-tools/36.0.0/aapt2 dump *)",
+      "Bash(fvm flutter *)",
+      "Bash(plutil -lint /Users/naga/Documents/projects/white_label_app/apps/example_app/ios/Runner.xcodeproj/project.pbxproj)",
+      "Bash(cp /tmp/orig_pbxproj /tmp/test1_pbxproj)",
+      "Bash(python3 -)",
+      "Bash(plutil -lint /tmp/test1_pbxproj)",
+      "Bash(plutil -lint apps/example_app/ios/Runner.xcodeproj/project.pbxproj)",
+      "Read(//Users/naga/Documents/packages/**)",
+      "Bash(fvm dart *)",
+      "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('/Users/naga/Documents/projects/white_label_app/.github/workflows/build-client.yml'\\)\\)\")",
+      "Bash(ruby -ryaml -e \"YAML.load_file\\('/Users/naga/Documents/projects/white_label_app/.github/workflows/build-client.yml'\\); puts 'YAML OK'\")"
+    ]
+  }
+}

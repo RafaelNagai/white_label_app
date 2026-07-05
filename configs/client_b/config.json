@@ -1,0 +1,29 @@
+{
+    "clientId": "client_b",
+    "identity": {
+        "appName": "Client B",
+        "android": {
+            "applicationId": "com.wlabel.clientb"
+        },
+        "ios": {
+            "bundleId": "com.wlabel.clientb"
+        }
+    },
+    "theme": {
+        "light": {
+            "primary": "FF3300",
+            "spacing": 8
+        },
+        "dark": {
+            "primary": "FF3300",
+            "spacing": 8
+        }
+    },
+    "backend": {
+        "apiBaseUrl": "https://api.clientb.example.com",
+        "featureFlags": {
+            "enableChat": false,
+            "enableLoyalty": true
+        }
+    }
+}

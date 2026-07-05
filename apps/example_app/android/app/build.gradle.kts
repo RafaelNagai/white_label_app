@@ -1,8 +1,23 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Client identity (applicationId, app name) is generated per build by
+// tool/apply_client.dart into client.properties. Defaults below keep
+// `flutter run` working before that script has ever been run.
+val clientProperties = Properties().apply {
+    val file = file("client.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+val clientApplicationId =
+    clientProperties.getProperty("clientApplicationId", "com.example.example_app")
+val clientAppName = clientProperties.getProperty("clientAppName", "example_app")
 
 android {
     namespace = "com.example.example_app"
@@ -14,9 +29,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.example_app"
+        applicationId = clientApplicationId
+        resValue("string", "app_name", clientAppName)
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

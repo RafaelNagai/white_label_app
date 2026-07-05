@@ -1,0 +1,29 @@
+{
+    "clientId": "client_c",
+    "identity": {
+        "appName": "Client C",
+        "android": {
+            "applicationId": "com.wlabel.clientc"
+        },
+        "ios": {
+            "bundleId": "com.wlabel.clientc"
+        }
+    },
+    "theme": {
+        "light": {
+            "primary": "22AAFF",
+            "spacing": 16
+        },
+        "dark": {
+            "primary": "22AAFF",
+            "spacing": 16
+        }
+    },
+    "backend": {
+        "apiBaseUrl": "https://api.clientc.example.com",
+        "featureFlags": {
+            "enableChat": true,
+            "enableLoyalty": true
+        }
+    }
+}
