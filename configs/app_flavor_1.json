@@ -1,0 +1,13 @@
+{
+    "flavor": "main_app_1",
+    "theme": {
+        "light": {
+            "primary": "00AA00",
+            "spacing": 16
+        },
+        "dark": {
+            "primary": "FFAA00",
+            "spacing": 16
+        }
+    }
+}
