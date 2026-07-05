@@ -1,12 +1,11 @@
 {
-    "flavor": "main_app_1",
     "theme": {
         "light": {
-            "primary": "00AA00",
+            "primary": "22AAFF",
             "spacing": 16
         },
         "dark": {
-            "primary": "FFAA00",
+            "primary": "22AAFF",
             "spacing": 16
         }
     }

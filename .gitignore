@@ -61,7 +61,7 @@ build/
 # Configs sensíveis / white-label
 # ============================
 # Config "ativa" gerada/copiada durante o build (não versionada)
-apps/app/assets/config/app_config.json
+apps/example_app/config/config_app.json
 
 # Segredos e chaves específicas de assinatura
 **/*.keystore
